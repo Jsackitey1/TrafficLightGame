@@ -28,17 +28,7 @@ List<List<int>> changeCount = List.generate(3, (_) => List.filled(3, 0));
 - `winner`: Stores the winning player's information
 - `changeCount`: Tracks how many times each cell has been changed
 
-### 2. Animation Controller
-
-```dart
-late AnimationController _controller;
-late Animation<double> _scaleAnimation;
-```
-
-- Manages animations for shape transitions
-- Creates a scale animation effect when shapes are placed
-
-### 3. Key Functions
+### 2. Key Functions
 
 #### Reset Game
 
