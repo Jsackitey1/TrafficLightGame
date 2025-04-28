@@ -9,24 +9,24 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  // 3x3 grid to store the traffic light states
+  // 4x3 grid to store the traffic light states
   // 0 = empty, 1 = red hexagon, 2 = yellow triangle, 3 = green circle
-  List<List<int>> grid = List.generate(3, (_) => List.filled(3, 0));
-  
+  List<List<int>> grid = List.generate(4, (_) => List.filled(3, 0));
+
   // Track current player (1 for Player 1, 2 for Player 2)
   int currentPlayer = 1;
-  
+
   // Track game state
   bool gameOver = false;
   String? winner;
 
   // Track number of changes per cell
-  List<List<int>> changeCount = List.generate(3, (_) => List.filled(3, 0));
+  List<List<int>> changeCount = List.generate(4, (_) => List.filled(3, 0));
 
   void _resetGame() {
     setState(() {
-      grid = List.generate(3, (_) => List.filled(3, 0));
-      changeCount = List.generate(3, (_) => List.filled(3, 0));
+      grid = List.generate(4, (_) => List.filled(3, 0));
+      changeCount = List.generate(4, (_) => List.filled(3, 0));
       currentPlayer = 1;
       gameOver = false;
       winner = null;
@@ -35,7 +35,7 @@ class _GameScreenState extends State<GameScreen> {
 
   bool _checkWin(int shape) {
     // Check rows
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
       if (grid[i][0] == shape && grid[i][1] == shape && grid[i][2] == shape) {
         return true;
       }
@@ -43,16 +43,27 @@ class _GameScreenState extends State<GameScreen> {
 
     // Check columns
     for (int i = 0; i < 3; i++) {
-      if (grid[0][i] == shape && grid[1][i] == shape && grid[2][i] == shape) {
+      if (grid[0][i] == shape &&
+          grid[1][i] == shape &&
+          grid[2][i] == shape &&
+          grid[3][i] == shape) {
         return true;
       }
     }
 
-    // Check diagonals
+    // Check diagonals (top-left to bottom-right)
     if (grid[0][0] == shape && grid[1][1] == shape && grid[2][2] == shape) {
       return true;
     }
+    if (grid[1][0] == shape && grid[2][1] == shape && grid[3][2] == shape) {
+      return true;
+    }
+
+    // Check diagonals (top-right to bottom-left)
     if (grid[0][2] == shape && grid[1][1] == shape && grid[2][0] == shape) {
+      return true;
+    }
+    if (grid[1][2] == shape && grid[2][1] == shape && grid[3][0] == shape) {
       return true;
     }
 
@@ -64,21 +75,23 @@ class _GameScreenState extends State<GameScreen> {
     if (changeCount[row][col] >= 3) return;
 
     setState(() {
-      // Cycle through states: empty -> red hexagon -> yellow triangle -> green circle
+      // Cycle through states: empty -> green circle -> yellow triangle -> red hexagon
       grid[row][col] = (grid[row][col] + 1) % 4;
       changeCount[row][col]++;
-      
+
       // Check for win based on the current shape
       if (grid[row][col] > 0) {
         if (_checkWin(grid[row][col])) {
           gameOver = true;
-          String shapeName = grid[row][col] == 1 ? "Red Hexagon" : 
-                           grid[row][col] == 2 ? "Yellow Triangle" : 
-                           "Green Circle";
-          winner = "Player ${currentPlayer} with $shapeName";
+          String shapeName = grid[row][col] == 1
+              ? "Green Circle"
+              : grid[row][col] == 2
+                  ? "Yellow Triangle"
+                  : "Red Hexagon";
+          winner = "Player $currentPlayer with $shapeName";
         }
       }
-      
+
       // Switch turns
       currentPlayer = currentPlayer == 1 ? 2 : 1;
     });
@@ -86,9 +99,9 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _getShape(int state) {
     switch (state) {
-      case 1: // Red hexagon
+      case 1: // Green circle
         return CustomPaint(
-          painter: HexagonPainter(color: Colors.red),
+          painter: CirclePainter(color: Colors.green),
           size: const Size(40, 40),
         );
       case 2: // Yellow triangle
@@ -96,9 +109,9 @@ class _GameScreenState extends State<GameScreen> {
           painter: TrianglePainter(color: Colors.yellow),
           size: const Size(40, 40),
         );
-      case 3: // Green circle
+      case 3: // Red hexagon
         return CustomPaint(
-          painter: CirclePainter(color: Colors.green),
+          painter: HexagonPainter(color: Colors.red),
           size: const Size(40, 40),
         );
       default:
@@ -159,9 +172,12 @@ class _GameScreenState extends State<GameScreen> {
                 )
               else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
-                    color: currentPlayer == 1 ? Colors.red.withOpacity(0.1) : Colors.yellow.withOpacity(0.1),
+                    color: currentPlayer == 1
+                        ? Colors.red.withOpacity(0.1)
+                        : Colors.yellow.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: currentPlayer == 1 ? Colors.red : Colors.yellow,
@@ -191,7 +207,7 @@ class _GameScreenState extends State<GameScreen> {
                   ],
                 ),
                 child: Column(
-                  children: List.generate(3, (row) {
+                  children: List.generate(4, (row) {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(3, (col) {
@@ -232,8 +248,10 @@ class _GameScreenState extends State<GameScreen> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Reset Game'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  textStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -325,4 +343,4 @@ class CirclePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-} 
+}
